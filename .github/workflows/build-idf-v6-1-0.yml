@@ -1,0 +1,93 @@
+name: Build ESP32PTPL2Follower (ESP-IDF v6.1)
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '**.c'
+      - '**.cc'
+      - '**.cpp'
+      - '**.h'
+      - '**.hpp'
+      - 'CMakeLists.txt'
+      - '**/CMakeLists.txt'
+      - 'sdkconfig'
+      - 'sdkconfig.*'
+      - 'config/**'
+      - 'components/**'
+      - '**/idf_component.yml'
+      - 'tools/build.py'
+      - 'dependencies.lock'
+      - '.github/workflows/build-idf-v6-1-0.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '**.c'
+      - '**.cc'
+      - '**.cpp'
+      - '**.h'
+      - '**.hpp'
+      - 'CMakeLists.txt'
+      - '**/CMakeLists.txt'
+      - 'sdkconfig'
+      - 'sdkconfig.*'
+      - 'config/**'
+      - 'components/**'
+      - '**/idf_component.yml'
+      - 'tools/build.py'
+      - 'dependencies.lock'
+      - '.github/workflows/build-idf-v6-1-0.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-v61:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - profile: pre_v3
+            target: esp32p4
+          - profile: v3_0
+            target: esp32p4
+          - profile: v3_1
+            target: esp32p4
+          - profile: s31
+            target: esp32s31
+
+    steps:
+    - name: Checkout Repository From Scratch
+      uses: actions/checkout@v6
+      with:
+        submodules: false
+
+    - name: Use public test key for CI builds
+      run: |
+        printf '%s\n' \
+          '#pragma once' \
+          '#include "setting_types.h"' \
+          'namespace follower::settings {' \
+          'inline constexpr PtpKey ptp_symmetric_keys[] = {{1, "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456"}};' \
+          '}' > main/ESP32PTPL2FollowerSettingsSecrets.h
+
+    - name: Prepare compiler cache directory
+      run: mkdir -p .ccache
+
+    - name: Setup Compiler Cache (ccache)
+      uses: actions/cache@v5
+      with:
+        path: .ccache
+        key: ${{ matrix.target }}-${{ matrix.profile }}-v6.1-ccache-${{ hashFiles('sdkconfig.defaults*', 'config/**', '**/idf_component.yml', '**/CMakeLists.txt') }}
+        restore-keys: |
+          ${{ matrix.target }}-${{ matrix.profile }}-v6.1-ccache-
+
+    - name: Clean Compile with ESP-IDF v6.1
+      uses: espressif/esp-idf-ci-action@v1
+      with:
+        esp_idf_version: v6.1
+        target: ${{ matrix.target }}
+        extra_docker_args: -v "${{ github.workspace }}/.ccache:/root/.ccache" -e CCACHE_DIR=/root/.ccache -e IDF_CCACHE_ENABLE=1
+        command: python tools/build.py --profile ${{ matrix.profile }}
