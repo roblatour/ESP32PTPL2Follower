@@ -36,7 +36,7 @@ It is a perfect companion for [ESP32TimeServer](https://github.com/roblatour/ESP
 
   >Notes: 
   >1. PTP L2 Servers/Followers work differently than PTP L3 Servers/Followers.  In short, a PTP L2 Follower works with Linux chrony compatible PTP L2 Time Server implementations, while a PTP L3 Server works with the Windows' compatible PTP L3 Time Server implementations.  
-  >2. ESP32TimeServer as a server supports NTP, PTP L2, and PTP L3 UDP. This program is a PTP L2 Follower, here is a link to a [PTP L3 Follower](https://github.com/roblatour/ESP32L3Follower). 
+  >2. ESP32TimeServer as a server supports NTP, PTP L2, and PTP L3 UDP. This program is a PTP L2 Follower, here is a link to a [PTP L3 Follower](https://github.com/roblatour/ESP32PTPL3Follower). 
   >3. Neither type of PTP server or Follower will work across hardware firewall (such as OPNSense and PFSense) interfaces.  PTP Servers and Followers both need to be within the same interface.  This is not the case for NTP servers, which do work fine across interfaces.
 
 ## Example console log output
